@@ -1,0 +1,69 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "🔥 Overlix Hub | Blox Fruits",
+   LoadingTitle = "Đang tải Logic Farm...",
+   LoadingSubtitle = "by Gemini AI",
+})
+
+local MainTab = Window:CreateTab("Auto Farm", 4483362458)
+
+-- Biến kiểm soát vòng lặp
+_G.AutoFarm = false
+
+-- Hàm di chuyển (Tween) để không bị hệ thống chống hack phát hiện ngay lập tức
+function SmoothTeleport(targetCFrame)
+    local character = game.Players.LocalPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local tweenService = game:GetService("TweenService")
+        local info = TweenInfo.new((targetCFrame.Position - character.HumanoidRootPart.Position).Magnitude / 300, Enum.EasingStyle.Linear)
+        local tween = tweenService:Create(character.HumanoidRootPart, info, {CFrame = targetCFrame})
+        tween:Play()
+    end
+end
+
+-- Logic Auto Farm
+spawn(function()
+    while wait() do
+        if _G.AutoFarm then
+            pcall(function()
+                -- 1. Tìm quái mục tiêu (Ví dụ: Bandit)
+                local targetMob = nil
+                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        targetMob = v
+                        break
+                    end
+                end
+
+                if targetMob then
+                    -- 2. Di chuyển đến phía trên đầu quái
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetMob.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+                    
+                    -- 3. Tự động đánh (Click chuột trái)
+                    local virtualUser = game:GetService("VirtualUser")
+                    virtualUser:CaptureController()
+                    virtualUser:ClickButton1(Vector2.new(851, 158), game.Workspace.CurrentCamera.CFrame)
+                else
+                    -- Nếu không có quái thì di chuyển về bãi quái (Tọa độ ví dụ cho đảo đầu)
+                    SmoothTeleport(CFrame.new(1050, 15, 1550)) 
+                end
+            end)
+        end
+    end
+end)
+
+-- Tạo nút gạt trong Menu
+MainTab:CreateToggle({
+   Name = "Kích hoạt Auto Farm",
+   CurrentValue = false,
+   Flag = "AutoFarmToggle",
+   Callback = function(Value)
+      _G.AutoFarm = Value
+      if Value then
+          Rayfield:Notify({Title = "Overlix Hub", Content = "Đã BẬT Auto Farm", Duration = 2})
+      else
+          Rayfield:Notify({Title = "Overlix Hub", Content = "Đã TẮT Auto Farm", Duration = 2})
+      end
+   end,
+})
